@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barcode Scanner in Modal</title>
+  <title>Barcode Scanner with ZXing.JS</title>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- QuaggaJS -->
-  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   
   <style>
-    /* Style the scanner container */
     #scanner-container video {
       max-width: 100%;
       height: auto;
     }
-    #scanner-container canvas {
-      display: none;
+    #barcode-result {
+      font-size: 1.2rem;
+      color: green;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -39,7 +38,7 @@
         </div>
         <div class="modal-body">
           <div id="scanner-container" style="width: 100%; height: 300px; background-color: #f0f0f0;"></div>
-          <p id="barcode-result" class="mt-3">Barcode Result: <span id="barcode-value"></span></p>
+          <p class="mt-3">Barcode Result: <span id="barcode-result">None</span></p>
         </div>
       </div>
     </div>
@@ -47,50 +46,54 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Script to Initialize Barcode Scanner -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const modal = document.getElementById('barcodeModal');
-      const barcodeResult = document.getElementById('barcode-value');
-      const scannerContainer = document.getElementById('scanner-container');
 
-      // Start scanning when modal is shown
-      modal.addEventListener('shown.bs.modal', () => {
-        Quagga.init(
-          {
-            inputStream: {
-              name: "Live",
-              type: "LiveStream",
-              target: scannerContainer, // Attach camera feed to this container
-            },
-            decoder: {
-              readers: ["code_128_reader", "ean_reader", "ean_8_reader"], // Add supported barcode types
-            },
-          },
-          (err) => {
-            if (err) {
-              console.error("Error initializing Quagga:", err);
-              return;
-            }
-            console.log("Quagga initialized successfully");
-            Quagga.start();
+  <!-- ZXing.JS -->
+  <script type="module">
+    import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.0/esm/index.min.js';
+
+    const codeReader = new BrowserMultiFormatReader();
+    const barcodeResult = document.getElementById("barcode-result");
+    const scannerContainer = document.getElementById("scanner-container");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const modal = document.getElementById("barcodeModal");
+
+      // Start scanner when modal is shown
+      modal.addEventListener("shown.bs.modal", async () => {
+        try {
+          const devices = await codeReader.listVideoInputDevices();
+          if (devices.length === 0) {
+            console.error("No video devices found.");
+            barcodeResult.textContent = "No camera detected.";
+            return;
           }
-        );
 
-        // Listen for barcode detection
-        Quagga.onDetected((data) => {
-          barcodeResult.textContent = data.codeResult.code;
-          console.log("Barcode detected:", data.codeResult.code);
+          // Use the first available video device
+          const selectedDeviceId = devices[0].deviceId;
 
-          // Optional: Stop scanning after a successful detection
-          Quagga.stop();
-        });
+          // Attach the camera feed to the scanner container
+          codeReader.decodeFromVideoDevice(selectedDeviceId, scannerContainer, (result, error) => {
+            if (result) {
+              console.log("Barcode detected:", result.text);
+              barcodeResult.textContent = result.text;
+
+              // Stop the scanner after successful detection
+              codeReader.reset();
+            }
+            if (error && !(error instanceof ZXing.NotFoundException)) {
+              console.error("Barcode detection error:", error);
+            }
+          });
+        } catch (err) {
+          console.error("Error starting scanner:", err);
+          barcodeResult.textContent = "Error starting scanner.";
+        }
       });
 
-      // Stop scanning when modal is hidden
-      modal.addEventListener('hidden.bs.modal', () => {
-        Quagga.stop();
+      // Stop scanner when modal is hidden
+      modal.addEventListener("hidden.bs.modal", () => {
+        codeReader.reset();
+        barcodeResult.textContent = "None";
       });
     });
   </script>
