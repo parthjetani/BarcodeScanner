@@ -12,17 +12,12 @@
   <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 
   <style>
-    /* Ensure the video container is properly styled */
-    #barcode-scanner {
-      width: 100%;
-      height: 300px; /* Set a fixed height for the video */
-      border: 1px solid #ccc;
+    #scanner-container video {
+        max-width: 100%;
+        height: auto;
     }
-    #barcode-scanner-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 10px;
+    #scanner-container canvas {
+        display: none;
     }
   </style>
 </head>
@@ -42,9 +37,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div id="barcode-scanner-container">
-          <div id="barcode-scanner" style="width: 100%; height: 100%;"></div>
-        </div>
+        <div id="scanner-container" style="width: 100%; height: 300px; background-color: #f0f0f0;"></div>
         <p id="barcode-result">Scan a barcode!</p>
       </div>
     </div>
@@ -61,7 +54,7 @@
       inputStream: {
         name: "Live",
         type: "LiveStream",
-        target: document.querySelector('#barcode-scanner'), // Where the video should appear
+        target: document.querySelector('#scanner-container'), // Where the video should appear
         constraints: {
           facingMode: "environment", // Use the rear camera
           width: { ideal: 1280 },  // Set ideal camera width for better resolution
