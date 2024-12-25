@@ -51,10 +51,12 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const codeReader = new ZXing.BrowserMultiFormatReader();
       const scannerContainer = document.getElementById("scanner-container");
       const barcodeResult = document.getElementById("barcode-result");
       const modal = document.getElementById("barcodeModal");
+
+      // Create an instance of the barcode scanner
+      const codeReader = new ZxingBrowser.BrowserMultiFormatReader();
 
       // Start scanner when modal is shown
       modal.addEventListener("shown.bs.modal", async () => {
@@ -70,18 +72,17 @@
           const selectedDeviceId = devices[0].deviceId;
 
           // Start scanning
-          codeReader.decodeOnceFromVideoDevice(selectedDeviceId, scannerContainer)
-            .then((result) => {
+          codeReader.decodeFromVideoDevice(selectedDeviceId, scannerContainer, (result, error) => {
+            if (result) {
               console.log("Barcode detected:", result.text);
               barcodeResult.textContent = result.text;
 
               // Stop scanner after detection
               codeReader.reset();
-            })
-            .catch((err) => {
-              console.error("Error decoding barcode:", err);
-              barcodeResult.textContent = "Error decoding barcode.";
-            });
+            } else if (error && !(error.name === "NotFoundException")) {
+              console.error("Error decoding barcode:", error);
+            }
+          });
         } catch (err) {
           console.error("Error starting camera:", err);
           barcodeResult.textContent = "Error starting camera.";
