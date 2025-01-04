@@ -89,6 +89,7 @@
 					const barcode = result.codeResult.code;
 					document.getElementById("result").textContent =
 						"Barcode found: " + barcode;
+					Quagga.stop();
 				});
 
 				// Handle the scanner stop event (optional)
