@@ -1,115 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barcode Scanner</title>
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  
-  <!-- QuaggaJS -->
-  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Barcode Scanner</title>
+		<style>
+			#scanner-container {
+				position: relative;
+				width: 100%;
+				height: 100vh;
+				background-color: #f4f4f4;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
 
-  <style>
-    #scanner-container video {
-        max-width: 100%;
-        height: auto;
-    }
-    #scanner-container canvas {
-        display: none;
-    }
-  </style>
-</head>
-<body>
+			#scanner {
+				width: 100%;
+				height: 80%;
+				border: 2px solid black;
+			}
 
-<!-- Button to trigger barcode scanner -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#barcodeScannerModal">
-  Open Barcode Scanner
-</button>
+			#result {
+				position: absolute;
+				bottom: 10px;
+				left: 50%;
+				transform: translateX(-50%);
+				padding: 10px;
+				background-color: rgba(0, 0, 0, 0.7);
+				color: white;
+				font-size: 16px;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="scanner-container">
+			<div id="scanner"></div>
+			<div id="result"></div>
+		</div>
 
-<!-- Modal -->
-<div class="modal fade" id="barcodeScannerModal" tabindex="-1" aria-labelledby="barcodeScannerModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="barcodeScannerModalLabel">Scan Barcode</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="scanner-container" style="width: 100%; height: 300px; background-color: #f0f0f0;"></div>
-        <p id="barcode-result">Scan a barcode!</p>
-      </div>
-    </div>
-  </div>
-</div>
+		<!-- QuaggaJS library -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+		<script>
+			// Initialize QuaggaJS for barcode scanning
+			function startScanner() {
+				Quagga.init(
+					{
+						inputStream: {
+							name: "Live",
+							type: "LiveStream",
+							target: document.querySelector("#scanner"), // target element for live stream
+							constraints: {
+								facingMode: "environment", // Use the rear camera (environmental camera)
+							},
+						},
+						decoder: {
+							readers: [
+								"code_128_reader",
+								"ean_reader",
+								"ean_8_reader",
+								"code_39_reader",
+								"upc_reader",
+							], // Supported barcode formats
+						},
+					},
+					function (err) {
+						if (err) {
+							console.log(err);
+							alert("Error initializing scanner: " + err);
+							return;
+						}
 
-<script>
-  // Initialize QuaggaJS barcode scanner
-  function startBarcodeScanner() {
-    console.log("Initializing barcode scanner...");
+						// Start scanning when initialization is successful
+						console.log("QuaggaJS initialized successfully.");
+						Quagga.start();
+					}
+				);
 
-    // Start Quagga scanner with improved configuration
-    Quagga.init({
-      inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: document.querySelector('#scanner-container'), // Where the video should appear
-        constraints: {
-          facingMode: "environment", // Use the rear camera
-          width: { ideal: 1280 },  // Set ideal camera width for better resolution
-          height: { ideal: 720 }, // Set ideal camera height
-          aspectRatio: { ideal: 1.777 } // Aspect ratio to match most phone screens
-        }
-      },
-      decoder: {
-        readers: [
-          "code_128_reader", "ean_reader", "ean_8_reader", 
-          "code_39_reader", "code_93_reader", "upc_reader"
-        ],
-        multiple: false, // Only process one result at a time
-        debug: {
-          showCanvas: true, // Show debugging canvas to see the detected area
-          showPipes: false, // Disable pipe debugging
-        }
-      },
-      locate: true, // Enable the scanning region (bounding box)
-      locateScanRegion: true, // Helps improve detection by narrowing the search area
-      patchSize: "medium", // Patch size (e.g., small, medium, large) controls image quality
-      halfSample: true // Use half-sampling for better performance
-    }, function(err) {
-      if (err) {
-        console.error("Quagga initialization error:", err);
-        alert("Barcode scanner failed to start.");
-        return;
-      }
-      console.log("Quagga initialized successfully!");
-      Quagga.start();
-    });
+				// Handle the barcode detected event
+				Quagga.onDetected(function (result) {
+					const barcode = result.codeResult.code;
+					document.getElementById("result").textContent =
+						"Barcode found: " + barcode;
+				});
 
-    // Listen for barcode detected event
-    Quagga.onDetected(function(result) {
-      console.log("Barcode detected:", result.codeResult.code);
-      document.getElementById('barcode-result').textContent = 'Barcode Detected: ' + result.codeResult.code;
-    });
-  }
+				// Handle the scanner stop event (optional)
+				Quagga.onProcessed(function (result) {
+					if (result) {
+						// You can display additional info here, like bounding boxes of barcodes
+						// For now, just clear the result if nothing is detected
+						if (!result.codeResult) {
+							document.getElementById("result").textContent =
+								"Scanning...";
+						}
+					}
+				});
+			}
 
-  // Open the modal and start scanner when modal is shown
-  var barcodeScannerModal = document.getElementById('barcodeScannerModal');
-  barcodeScannerModal.addEventListener('shown.bs.modal', function() {
-    console.log("Modal is now open, starting the scanner...");
-    startBarcodeScanner();
-  });
-
-  // Stop scanner when modal is hidden
-  barcodeScannerModal.addEventListener('hidden.bs.modal', function() {
-    console.log("Modal closed, stopping scanner...");
-    Quagga.stop();
-  });
-</script>
-
-<!-- Bootstrap JS (Required for modal functionality) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
+			// Start the scanner when the page is ready
+			window.onload = function () {
+				startScanner();
+			};
+		</script>
+	</body>
 </html>
