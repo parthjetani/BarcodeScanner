@@ -36,23 +36,12 @@
 				font-size: 16px;
 				text-align: center;
 			}
-			#drawingBuffer {
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				z-index: 2;
-				pointer-events: none; /* Allow interaction with the video */
-			}
 		</style>
 	</head>
 
 	<body>
 		<div id="scanner-container">
-			<div id="scanner">
-				<canvas id="drawingBuffer"></canvas> <!-- This is the drawingBuffer canvas -->
-			</div>
+			<div id="scanner"></div>
 			<div id="result"></div>
 		</div>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
@@ -106,35 +95,16 @@
 				});
 
 				Quagga.onProcessed(function (result) {
-					var drawingBuffer = document.getElementById("drawingBuffer");
-					var ctx = drawingBuffer.getContext('2d');
-
-					// Clear previous drawings
-					ctx.clearRect(0, 0, drawingBuffer.width, drawingBuffer.height);
-
 					if (result) {
 						// Wait until the barcode quality improves
 						if (!result.codeResult && result.processing && result.codeResult?.quality > 0.4) {
-							document.getElementById("result").textContent = "Scanning...";
+							document.getElementById("result").textContent ="Scanning...";
 						} else if (result.codeResult) {
-							// Draw bounding box around barcode
-							var box = result.box;
-							ctx.beginPath();
-							ctx.moveTo(box[0][0], box[0][1]);
-							ctx.lineTo(box[1][0], box[1][1]);
-							ctx.lineTo(box[2][0], box[2][1]);
-							ctx.lineTo(box[3][0], box[3][1]);
-							ctx.closePath();
-
-							ctx.lineWidth = 2;
-							ctx.strokeStyle = "green";
-							ctx.stroke();
-							
-							// Display the barcode result
+							// Clear quality message when barcode is found
 							document.getElementById("result").textContent = "Barcode found: " + result.codeResult.code;
 							Quagga.stop();
 						} else {
-							document.getElementById("result").textContent = "Image quality too low, please move closer.";
+							document.getElementById("result").textContent ="Image quality too low, please move closer.";
 						}
 					}
 				});
