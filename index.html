@@ -90,8 +90,15 @@
 
 				Quagga.onProcessed(function (result) {
 					if (result) {
-						if (!result.codeResult) {
+						// Wait until the barcode quality improves
+						if (!result.codeResult && result.processing && result.codeResult?.quality > 0.4) {
 							document.getElementById("result").textContent ="Scanning...";
+						} else if (result.codeResult) {
+							// Clear quality message when barcode is found
+							document.getElementById("result").textContent = "Barcode found: " + result.codeResult.code;
+							Quagga.stop();
+						} else {
+							document.getElementById("result").textContent ="Image quality too low, please move closer.";
 						}
 					}
 				});
