@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barcode Scanner</title>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/quaggajs@0.12.1/dist/quagga.min.js"></script>
   <style>
     /* Style for the scanner container */
     #scanner-container {
@@ -34,30 +33,37 @@
   </div>
   <div id="barcode-result"></div>
 
+  <!-- Load QuaggaJS at the end of the body -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/quaggajs@0.12.1/dist/quagga.min.js"></script>
+
   <script>
     // Initialize QuaggaJS barcode scanner
     function startScanner() {
-      Quagga.init({
-        inputStream: {
-          name: 'Live',
-          type: 'LiveStream',
-          target: document.querySelector('#scanner-video') // Target the video element
-        },
-        decoder: {
-          readers: ['code_128', 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader'] // Define the barcode types you want to read
-        }
-      }, function(err) {
-        if (err) {
-          console.log('Error starting scanner:', err);
-          return;
-        }
-        Quagga.start();
-      });
+      if (typeof Quagga !== 'undefined') {
+        Quagga.init({
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: document.querySelector('#scanner-video') // Target the video element
+          },
+          decoder: {
+            readers: ['code_128', 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader'] // Define the barcode types you want to read
+          }
+        }, function(err) {
+          if (err) {
+            console.log('Error starting scanner:', err);
+            return;
+          }
+          Quagga.start();
+        });
 
-      // Event listener for when a barcode is detected
-      Quagga.onDetected(function(result) {
-        document.getElementById('barcode-result').textContent = 'Detected Barcode: ' + result.codeResult.code;
-      });
+        // Event listener for when a barcode is detected
+        Quagga.onDetected(function(result) {
+          document.getElementById('barcode-result').textContent = 'Detected Barcode: ' + result.codeResult.code;
+        });
+      } else {
+        console.error('QuaggaJS is not loaded correctly.');
+      }
     }
 
     // Start scanner when page loads
