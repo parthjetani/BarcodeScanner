@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <!-- We prevent the user from zooming on mobile device -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>My Scanner App</title>
-</head>
-<body style="margin: 0">
-<button id="start-scanning">Start scanning</button>
-<pre id="result"></pre>
-<script type="module">
-    // We import the necessary ScanbotSDK module
-    import "./scanbot-web-sdk/bundle/ScanbotSDK.ui2.min.js";
-    // When initializing the SDK, we specify the path to the barcode scanner engine
-    const sdk = await ScanbotSDK.initialize({
-        engine: "scanbot-web-sdk/bundle/bin/barcode-scanner/"
-    });
-    document.getElementById("start-scanning").addEventListener("click", async () => {
-        // We create a new default configuration for the barcode scanner
-        const config = new ScanbotSDK.UI.Config.BarcodeScannerConfiguration();
-        // We create a barcode scanner UI component
-        const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
-        // Once the scanning is done, we display the result
-        if (scanResult?.items?.length > 0) {
-            document.getElementById("result").innerText =
-                `Barcode type: ${scanResult.items[0].type} \n` +
-                `Barcode content: "${scanResult.items[0].text}" \n`;
-        } else {
-            document.getElementById("result").innerText = "Scanning aborted by the user";
-        }
-    });
-</script>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+        <title>My Scanner App</title>
+    </head>
+    <body style="margin: 0">
+        <button id="start-scanning">Start scanning</button>
+        <pre id="result"></pre>
+        <script type="module">
+            import * as ScanbotSDK from "./scanbot-web-sdk/bundle/ScanbotSDK.ui2.min.js";
+
+            async function initializeScanner() {
+                const sdk = await ScanbotSDK.initialize({
+                    engine: "./scanbot-web-sdk/bundle/bin/barcode-scanner/"
+                });
+
+                document.getElementById("start-scanning").addEventListener("click", async () => {
+                    const config = new ScanbotSDK.UI.Config.BarcodeScannerConfiguration();
+                    const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
+
+                    if (scanResult?.items?.length > 0) {
+                        document.getElementById("result").innerText =
+                            `Barcode type: ${scanResult.items[0].type} \n` +
+                            `Barcode content: "${scanResult.items[0].text}" \n`;
+                    } else {
+                        document.getElementById("result").innerText = "Scanning aborted by the user";
+                    }
+                });
+            }
+            initializeScanner().catch(console.error);
+        </script>
+    </body>
 </html>
