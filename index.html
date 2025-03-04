@@ -9,27 +9,25 @@
         <button id="start-scanning">Start scanning</button>
         <pre id="result"></pre>
         <script type="module">
-            import * as ScanbotSDK from "./scanbot-web-sdk/bundle/ScanbotSDK.ui2.min.js";
+            import "./scanbot-web-sdk/bundle/ScanbotSDK.ui2.min.js";
 
-            async function initializeScanner() {
-                const sdk = await ScanbotSDK.initialize({
-                    engine: "./scanbot-web-sdk/bundle/bin/barcode-scanner/"
-                });
+            const sdk = await ScanbotSDK.initialize({
+                engine: "scanbot-web-sdk/bundle/bin/barcode-scanner/"
+            });
+            
+            document.getElementById("start-scanning").addEventListener("click", async () => {
+                const config = new ScanbotSDK.UI.Config.BarcodeScannerConfiguration();
 
-                document.getElementById("start-scanning").addEventListener("click", async () => {
-                    const config = new ScanbotSDK.UI.Config.BarcodeScannerConfiguration();
-                    const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
+                const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
 
-                    if (scanResult?.items?.length > 0) {
-                        document.getElementById("result").innerText =
-                            `Barcode type: ${scanResult.items[0].type} \n` +
-                            `Barcode content: "${scanResult.items[0].text}" \n`;
-                    } else {
-                        document.getElementById("result").innerText = "Scanning aborted by the user";
-                    }
-                });
-            }
-            initializeScanner().catch(console.error);
+                if (scanResult?.items?.length > 0) {
+                    document.getElementById("result").innerText =
+                        `Barcode type: ${scanResult.items[0].type} \n` +
+                        `Barcode content: "${scanResult.items[0].text}" \n`;
+                } else {
+                    document.getElementById("result").innerText = "Scanning aborted by the user";
+                }
+            });
         </script>
     </body>
 </html>
